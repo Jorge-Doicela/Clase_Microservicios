@@ -1,0 +1,46 @@
+const service = require('../services/product.service');
+exports.getProducts = async (req, res) => {
+    const data = await service.getAll();
+    res.json(data);
+};
+
+exports.getProductById = async (req, res) => {
+    const prod = await service.getById(req.params.id);
+    prod ? res.json(prod) : res.status(404).json({ error: "Producto no encontrado" });
+};
+
+exports.createProduct = async (req, res) => {
+    try {
+        if (!req.body || Object.keys(req.body).length === 0) {
+            return res.status(400).json({ error: "El cuerpo de la solicitud está vacío" });
+        }
+        const newProd = await service.create(req.body);
+        res.status(201).json(newProd);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+};
+
+exports.updateProduct = async (req, res) => {
+    try {
+        const updated = await service.update(req.params.id, req.body);
+        if (!updated) {
+            return res.status(404).json({ error: "Producto no encontrado" });
+        }
+        res.json(updated);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+};
+
+exports.deleteProduct = async (req, res) => {
+    try {
+        const result = await service.delete(req.params.id);
+        if (!result) {
+            return res.status(404).json({ error: "Producto no encontrado" });
+        }
+        res.json({ message: "Producto eliminado", producto: result });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
