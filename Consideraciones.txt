@@ -1,0 +1,374 @@
+CREATE TABLE orders (
+id_order SERIAL PRIMARY KEY,
+id_usuario INT NOT NULL,
+total NUMERIC(10,2),
+estado VARCHAR(20) DEFAULT 'CREADA',
+fecha TIMESTAMP DEFAULT NOW()
+)
+
+CREATE TABLE orden_detalle (
+id SERIAL PRIMARY KEY,
+orden_id INT NOT NULL,
+producto_id INT NOT NULL,
+cantidad INT NOT NULL,
+precio_unitario NUMERIC(10,2) NOT NULL
+)
+
+id_usuario
+id
+
+
+
+MAL
+const db = require("../database/index.db");
+
+exports.createOrder = async (id_usuario)=> {
+    const result = await db.query(
+        'INSERT INTO orders (id_usuario, total, estado)
+        VALUES ($1, 0, 'CREADA')
+        RETURNING *',
+        [id_usuario]
+    );
+    return result.rows[0];
+};
+
+exports.addDetalle = async (id_order, productoID, cantidad, precio) => {
+    await db.query(
+        'INSERT INTO orden_detalle (order_id, producto_id, cantidad, precio_unitario)
+        VALUES ($1, $2, $3, $4),
+        [id_order, productoID, cantidad, precio]
+    );
+};
+
+exports.updateTotal = async (id_order, total) => {
+    await db.query(
+        'UPDATE orders SET total = $1 WHERE id_order = $2',
+        [total, id_order]
+    );
+};
+
+exports.getOrdenById = async (id_order) => {
+    const orden = await db.query(
+        'SELECT * FROM orders WHERE id_order = $1', [id_order]
+    );
+    return {
+        orden: orden.rows[0]
+        detalle:detalle.rows
+    };
+};
+  
+
+exports.updateOrderStatus = async (id_order, estado) => {
+    const result = await db.query(
+        'UPDATE orders SET estado = $1 WHERE id_order = $2 RETURNING *',
+        [estado, id_order]
+    );
+    return result.rows[0];
+}
+
+
+
+Viendo tu código, primero tienes **errores de sintaxis** que debes corregir:
+
+## Errores encontrados:
+
+1. **`createOrder`** - Comillas mal cerradas en la query
+2. **`addDetalle`** - Falta cerrar paréntesis en `VALUES` y comilla de cierre
+3. **`getOrdenById`** - Falta coma entre propiedades del objeto retornado, y `detalle` no está definido
+
+## Código corregido:
+
+````javascript
+const db = require("../database/index.db");
+
+exports.createOrder = async (id_usuario) => {
+    const result = await db.query(
+        'INSERT INTO orders (id_usuario, total, estado) VALUES ($1, 0, $2) RETURNING *',
+        [id_usuario, 'CREADA']
+    );
+    return result.rows[0];
+};
+
+exports.addDetalle = async (id_order, productoID, cantidad, precio) => {
+    await db.query(
+        'INSERT INTO orden_detalle (order_id, producto_id, cantidad, precio_unitario) VALUES ($1, $2, $3, $4)',
+        [id_order, productoID, cantidad, precio]
+    );
+};
+
+exports.updateTotal = async (id_order, total) => {
+    await db.query(
+        'UPDATE orders SET total = $1 WHERE id_order = $2',
+        [total, id_order]
+    );
+};
+
+exports.getOrdenById = async (id_order) => {
+    const orden = await db.query(
+        'SELECT * FROM orders WHERE id_order = $1', [id_order]
+    );
+    const detalle = await db.query(
+        'SELECT * FROM orden_detalle WHERE order_id = $1', [id_order]
+    );
+    return {
+        orden: orden.rows[0],
+        detalle: detalle.rows
+    };
+};
+
+exports.updateOrderStatus = async (id_order, estado) => {
+    const result = await db.query(
+        'UPDATE orders SET estado = $1 WHERE id_order = $2 RETURNING *',
+        [estado, id_order]
+    );
+    return result.rows[0];
+};
+````
+
+## Para usar Axios (en tu controlador):
+
+````javascript
+const axios = require('axios');
+
+// GET
+axios.get('http://api.com/endpoint')
+  .then(res => console.log(res.data))
+  .catch(err => console.log(err));
+
+// POST
+axios.post('http://api.com/endpoint', { data: 'value' })
+  .then(res => console.log(res.data))
+  .catch(err => console.log(err));
+
+// PUT
+axios.put('http://api.com/endpoint/id', { updated: 'data' })
+  .then(res => console.log(res.data))
+  .catch(err => console.log(err));
+
+// DELETE
+axios.delete('http://api.com/endpoint/id')
+  .then(res => console.log(res.data))
+  .catch(err => console.log(err));
+````
+
+
+BIEN: 
+const db = require("../database/index.db");
+
+exports.createOrder = async (id_usuario) => {
+    const result = await db.query(
+        'INSERT INTO orders (id_usuario, total, estado) VALUES ($1, 0, $2) RETURNING *',
+        [id_usuario, 'CREADA']
+    );
+    return result.rows[0];
+};
+
+exports.addDetalle = async (id_order, productoID, cantidad, precio) => {
+    await db.query(
+        'INSERT INTO orden_detalle (order_id, producto_id, cantidad, precio_unitario) VALUES ($1, $2, $3, $4)',
+        [id_order, productoID, cantidad, precio]
+    );
+};
+
+exports.updateTotal = async (id_order, total) => {
+    await db.query(
+        'UPDATE orders SET total = $1 WHERE id_order = $2',
+        [total, id_order]
+    );
+};
+
+exports.getOrdenById = async (id_order) => {
+    const orden = await db.query(
+        'SELECT * FROM orders WHERE id_order = $1', [id_order]
+    );
+    const detalle = await db.query(
+        'SELECT * FROM orden_detalle WHERE order_id = $1', [id_order]
+    );
+    return {
+        orden: orden.rows[0],
+        detalle: detalle.rows
+    };
+};
+  
+
+exports.updateOrderStatus = async (id_order, estado) => {
+    const result = await db.query(
+        'UPDATE orders SET estado = $1 WHERE id_order = $2 RETURNING *',
+        [estado, id_order]
+    );
+    return result.rows[0];
+}
+
+
+
+
+# Explicación de Axios
+
+**Axios** es una librería para hacer peticiones HTTP desde Node.js o el navegador. Es como un mensajero que envía solicitudes a servidores.
+
+## Conceptos básicos:
+
+### 1. **GET** - Obtener datos
+```javascript
+axios.get('http://api.com/usuarios/1')
+  .then(res => console.log(res.data))  // Datos recibidos
+  .catch(err => console.log(err));      // Si hay error
+```
+
+### 2. **POST** - Enviar datos (crear)
+```javascript
+axios.post('http://api.com/usuarios', {
+  nombre: 'Juan',
+  email: 'juan@mail.com'
+})
+  .then(res => console.log(res.data))
+  .catch(err => console.log(err));
+```
+
+### 3. **PUT** - Actualizar datos
+```javascript
+axios.put('http://api.com/usuarios/1', {
+  nombre: 'Juan Actualizado'
+})
+  .then(res => console.log(res.data))
+  .catch(err => console.log(err));
+```
+
+### 4. **DELETE** - Eliminar datos
+```javascript
+axios.delete('http://api.com/usuarios/1')
+  .then(res => console.log(res.data))
+  .catch(err => console.log(err));
+```
+
+## En tu caso (Microservicios):
+
+Usarías axios en tu **controlador** para llamar a otros servicios:
+
+```javascript
+// En order.controller.js
+const axios = require('axios');
+
+exports.crearOrden = async (req, res) => {
+    // Llamar al servicio de productos
+    const producto = await axios.get('http://localhost:3001/productos/5');
+    
+    // Usar los datos del producto
+    console.log(producto.data);
+};
+```
+
+¿Necesitas que lo aplique en tu controlador de órdenes?
+
+
+
+
+
+
+MAL
+
+
+const service = require('../services/order.service');
+exports.getOrders = async (req, res) => {
+    const data = await service.getAll();
+    res.json(data);
+};
+
+exports.getOrderById = async (req, res) => {
+    const order = await service.getById(req.params.id);
+    order ? res.json(order) : res.status(404).json({ error: "Orden no encontrada" });
+};
+
+exports.createOrder = async (req, res) => {
+    try {
+        if (!req.body || Object.keys(req.body).length === 0) {
+            return res.status(400).json({ error: "El cuerpo de la solicitud está vacío" });
+        }
+        const newOrder = await service.create(req.body);
+        res.status(201).json(newOrder);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+};
+
+exports.updateOrder = async (req, res) => {
+    try {
+        const updated = await service.update(req.params.id, req.body);
+        if (!updated) {
+            return res.status(404).json({ error: "Orden no encontrada" });
+        }
+        res.json(updated);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+};
+
+exports.deleteOrder = async (req, res) => {
+    try {
+        const result = await service.delete(req.params.id);
+        if (!result) {
+            return res.status(404).json({ error: "Orden no encontrada" });
+        }
+        res.json({ message: "Orden eliminada", orden: result });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+
+
+BIEN 
+
+
+const axios = require('axios');
+const service = require('../services/order.service');
+
+exports.getOrders = async (req, res) => {
+    const data = await service.getAll();
+    res.json(data);
+};
+
+exports.getOrderById = async (req, res) => {
+    const order = await service.getById(req.params.id);
+    order ? res.json(order) : res.status(404).json({ error: "Orden no encontrada" });
+};
+
+exports.createOrder = async (req, res) => {
+    try {
+        if (!req.body || Object.keys(req.body).length === 0) {
+            return res.status(400).json({ error: "El cuerpo de la solicitud está vacío" });
+        }
+        
+        // Llamar al servicio de productos
+        const producto = await axios.get(`http://localhost:3001/productos/${req.body.productoID}`);
+        
+        const newOrder = await service.create(req.body);
+        res.status(201).json({ order: newOrder, producto: producto.data });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+};
+
+exports.updateOrder = async (req, res) => {
+    try {
+        const updated = await service.update(req.params.id, req.body);
+        if (!updated) {
+            return res.status(404).json({ error: "Orden no encontrada" });
+        }
+        res.json(updated);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+};
+
+exports.deleteOrder = async (req, res) => {
+    try {
+        const result = await service.delete(req.params.id);
+        if (!result) {
+            return res.status(404).json({ error: "Orden no encontrada" });
+        }
+        res.json({ message: "Orden eliminada", orden: result });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
