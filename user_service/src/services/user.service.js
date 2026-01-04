@@ -6,8 +6,16 @@ const validateUser = (usuario, create = true) => {
     if ((create || usuario.cedula) && (!usuario.cedula || usuario.cedula.length < 8)) throw new Error("Cédula inválida");
 };
 
-exports.getAll = repositorio.getAll;
-exports.getById = repositorio.getById;
-exports.create = (usuario) => (validateUser(usuario), repositorio.create(usuario));
-exports.update = (id, data) => (validateUser(data, false), repositorio.update(id, data));
-exports.delete = repositorio.delete;
+exports.obtenerTodos = repositorio.obtenerTodos;
+exports.obtenerPorId = repositorio.obtenerPorId;
+exports.crear = async (usuario) => {
+    validateUser(usuario);
+    return await repositorio.crear(usuario);
+};
+
+exports.actualizar = async (id, data) => {
+    validateUser(data, false);
+    return await repositorio.actualizar(id, data);
+};
+
+exports.eliminar = repositorio.eliminar;

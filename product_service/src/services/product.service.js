@@ -7,8 +7,16 @@ const validateProduct = (producto, isUpdate = false) => {
     if ((!isUpdate || producto.stock !== undefined) && (typeof producto.stock !== 'number' || producto.stock < 0)) throw new Error("Stock inválido");
 };
 
-exports.getAll = repositorio.getAll;
-exports.getById = repositorio.getById;
-exports.create = (producto) => (validateProduct(producto), repositorio.create(producto));
-exports.update = (id, data) => (validateProduct(data, true), repositorio.update(id, data));
-exports.delete = repositorio.delete;
+exports.obtenerTodos = repositorio.obtenerTodos;
+exports.obtenerPorId = repositorio.obtenerPorId;
+exports.crear = async (producto) => {
+    validateProduct(producto);
+    return await repositorio.crear(producto);
+};
+
+exports.actualizar = async (id, data) => {
+    validateProduct(data, true);
+    return await repositorio.actualizar(id, data);
+};
+
+exports.eliminar = repositorio.eliminar;

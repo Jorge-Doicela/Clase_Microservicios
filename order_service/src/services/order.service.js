@@ -9,10 +9,11 @@ const calculateTotal = (orden) => {
     return orden;
 };
 
-exports.getAll = repositorio.getAll;
-exports.getById = repositorio.getById;
-exports.create = (orden) => {
+exports.obtenerTodos = repositorio.obtenerTodos;
+exports.obtenerPorId = repositorio.obtenerPorId;
+exports.crear = (orden) => {
     if (!orden.id_usuario || !orden.detalles || !orden.detalles.length) throw new Error("Datos incompletos");
-    return repositorio.create(calculateTotal(orden));
+    return repositorio.crear(calculateTotal(orden));
 };
-exports.delete = repositorio.delete;
+exports.actualizar = repositorio.actualizar;
+exports.eliminar = repositorio.eliminar;

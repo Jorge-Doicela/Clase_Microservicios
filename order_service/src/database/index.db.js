@@ -1,1 +1,5 @@
-module.exports = new (require('pg').Pool)();
+const { Pool } = require('pg');
+
+const pool = new Pool();
+
+module.exports = pool;
