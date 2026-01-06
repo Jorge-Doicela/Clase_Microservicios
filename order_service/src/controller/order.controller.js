@@ -22,7 +22,17 @@ exports.crearOrden = manejarError(async (req, res) => {
 });
 
 exports.actualizarOrden = manejarError(async (req, res) => {
-    const updated = await servicio.actualizar(req.params.id, req.body);
+    const { detalles, id_usuario } = req.body;
+    let data = { ...req.body };
+
+    if (detalles && detalles.length > 0) {
+        data.detalles = await Promise.all(detalles.map(async item => {
+            const producto = await (await fetch(`http://localhost:4002/api/product/${item.id_producto}`)).json();
+            return { ...item, precio: producto.precio };
+        }));
+    }
+
+    const updated = await servicio.actualizar(req.params.id, data);
     if (!updated) throw new Error("Orden no encontrada");
     res.json(updated);
 });

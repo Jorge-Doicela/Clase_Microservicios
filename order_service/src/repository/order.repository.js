@@ -31,7 +31,22 @@ exports.crear = async (orden) => transaction(async (client) => {
     return { orden: final, detalle: (await client.query('SELECT * FROM orden_detalle WHERE order_id = $1', [newId])).rows };
 });
 
-exports.actualizar = async (id, data) => data.estado ? (await db.query('UPDATE orders SET estado = $1 WHERE id_order = $2 RETURNING *', [data.estado, id])).rows[0] : null;
+exports.actualizar = async (id, data) => transaction(async (client) => {
+    if (data.detalles) {
+        await client.query('DELETE FROM orden_detalle WHERE order_id = $1', [id]);
+        for (const item of data.detalles) {
+            await client.query('INSERT INTO orden_detalle (order_id, producto_id, cantidad, precio_unitario) VALUES ($1, $2, $3, $4)', [id, item.id_producto, item.cantidad, item.precio]);
+        }
+        await client.query('UPDATE orders SET total = $1 WHERE id_order = $2', [data.totalCalculado, id]);
+    }
+
+    if (data.estado) {
+        await client.query('UPDATE orders SET estado = $1 WHERE id_order = $2', [data.estado, id]);
+    }
+
+    const orden = (await client.query('SELECT * FROM orders WHERE id_order = $1', [id])).rows[0];
+    return orden ? { orden: orden, detalle: (await client.query('SELECT * FROM orden_detalle WHERE order_id = $1', [id])).rows } : null;
+});
 
 exports.eliminar = async (id) => transaction(async (client) => {
     await client.query('DELETE FROM orden_detalle WHERE order_id = $1', [id]);

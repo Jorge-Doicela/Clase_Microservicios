@@ -15,5 +15,10 @@ exports.crear = (orden) => {
     if (!orden.id_usuario || !orden.detalles || !orden.detalles.length) throw new Error("Datos incompletos");
     return repositorio.crear(calcularTotal(orden));
 };
-exports.actualizar = repositorio.actualizar;
+exports.actualizar = (id, data) => {
+    if (data.detalles) {
+        data = calcularTotal(data);
+    }
+    return repositorio.actualizar(id, data);
+};
 exports.eliminar = repositorio.eliminar;
